@@ -20,9 +20,9 @@ class UserRoles(models.Model):
     ADMIN = 'admin'
     MODERATOR = 'moderator'
     choices = (
-        ('Пользователь', USER),
-        ('Админ', ADMIN),
-        ('Модератор', MODERATOR)
+        (USER, 'Пользователь'),
+        (ADMIN, 'Админ'),
+        (MODERATOR, 'Модератор')
     )
 
 
@@ -33,6 +33,7 @@ class User(models.Model):
     password = models.CharField(max_length=60)
     role = models.CharField(choices=UserRoles.choices, default='member', max_length=12)
     location = models.ManyToManyField(Location)
+    age = models.PositiveSmallIntegerField(null=True)
 
     class Meta:
         verbose_name = 'Пользователь'

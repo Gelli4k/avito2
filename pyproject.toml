@@ -9,6 +9,9 @@ readme = "README.md"
 python = "^3.10"
 psycopg2 = "^2.9.3"
 Pillow = "^9.2.0"
+djangorestframework-jsonapi = "^6.0.0"
+djangorestframework-jwt = "^1.11.0"
+djangorestframework = "^3.14.0"
 
 
 [build-system]
