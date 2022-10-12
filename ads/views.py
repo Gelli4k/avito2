@@ -53,16 +53,6 @@ class CategoryCreateView(CreateView):
 @method_decorator(csrf_exempt, name='dispatch')
 class CategoryUpdateView(UpdateView):
     model = Category
-    success_url = '/'
-
-    def delete(self, request, *args, **kwargs):
-        super().delete(request, *args, **kwargs)
-        return JsonResponse({}, status=204)
-
-
-@method_decorator(csrf_exempt, name='dispatch')
-class CategoryDeleteView(DeleteView):
-    model = Category
     fields = ['name']
 
     def patch(self, request, *args, **kwargs):
@@ -74,6 +64,16 @@ class CategoryDeleteView(DeleteView):
                             json_dumps_params={'ensure_ascii': False})
 
 
+@method_decorator(csrf_exempt, name='dispatch')
+class CategoryDeleteView(DeleteView):
+
+    model = Category
+    success_url = '/'
+
+    def delete(self, request, *args, **kwargs):
+        super().delete(request, *args, **kwargs)
+        return JsonResponse({}, status=204)
+
 class CategoryDetailView(DetailView):
     model = Category
 
@@ -81,6 +81,7 @@ class CategoryDetailView(DetailView):
         cat = self.get_object()
         return JsonResponse({'id': cat.id, 'name': cat.name}, safe=False,
                             json_dumps_params={'ensure_ascii': False})
+
 
 class AdListView(ListAPIView):
     queryset = Ad.objects.order_by("-price").all()
@@ -147,7 +148,7 @@ class AdCreateView(CreateView):
             category=category,
             price=data['price'],
             description=data['description'],
-            is_published=data['is_published']
+            is_published=data['is_published'] if 'is_published' in data else False
         )
 
         return JsonResponse(
@@ -158,6 +159,27 @@ class AdCreateView(CreateView):
              "price": new_ad.price,
              "description": new_ad.description,
              "is_published": new_ad.is_published,
+             }, safe=False,
+            json_dumps_params={'ensure_ascii': False})
+
+
+class AdUpdateView(UpdateView):
+    model = Ad
+    fields = ['name', 'author', 'price', 'description', 'is_published', 'category']
+
+    def patch(self, request, *args, **kwargs):
+        super().post(request, *args, **kwargs)
+        data = json.loads(request.body)
+        self.object.name = data['name', 'author', 'price', 'description', 'is_published', 'category']
+        self.object.save()
+        return JsonResponse(
+            {"id": self.object.id,
+             "name": self.object.name,
+             "author": self.object.author.username,
+             "category": self.object.category.name,
+             "price": self.object.price,
+             "description": self.object.description,
+             "is_published": self.object.is_published,
              }, safe=False,
             json_dumps_params={'ensure_ascii': False})
 
@@ -197,3 +219,13 @@ class AdDetailView(DetailView):
             "description": ad.description,
             "is_published": ad.is_published}, safe=False,
             json_dumps_params={'ensure_ascii': False})
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AdDeleteView(DeleteView):
+    model = Ad
+    success_url = '/'
+
+    def delete(self, request, *args, **kwargs):
+        super().delete(request, *args, **kwargs)
+        return JsonResponse({}, status=204)

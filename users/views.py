@@ -39,6 +39,7 @@ class LocationViewSet(ModelViewSet):
 #                 "role": user.role,
 #                 "ads_count": user.ads.count()
 #
+#
 #             })
 #         return JsonResponse({'users': result, 'page': page_obj.number, 'total': page_obj.paginator.count},
 #                             safe=False, json_dumps_params={'ensure_ascii': False})
@@ -61,6 +62,7 @@ class LocationViewSet(ModelViewSet):
 #         for loc in data['location']:
 #             location, _ = Location.objects.get_or_create(name=loc)
 #             user.location.add(location)
+#
 #         return JsonResponse({
 #             'id': user.id,
 #             'first_name': user.first_name,
@@ -69,6 +71,33 @@ class LocationViewSet(ModelViewSet):
 #             'location': [str(u) for u in user.location.all()],
 #               }
 #         )
+# @method_decorator(csrf_exempt, name='dispatch')
+# class UserUpdateView(UpdateView):
+#     model = User
+#     fields = ['username', 'password', 'first_name', 'last_name', 'role', 'locations']
+#
+#         def patch(self, request, *args, **kwargs):
+#         super().post(request, *args, **kwargs)
+#         data = json.loads(request.body)
+#         self.object.name = data['username', 'password', 'first_name', 'last_name', 'role', 'locations']
+#         self.object.save()
+#         return JsonResponse({
+#             'id': self.object.id,
+#             'first_name': self.object.first_name,
+#             'last_name': self.object.last_name,
+#             'role': self.object.role,
+#             'location': [str(u) for u in self.object.location.all()],
+#               }
+#         )
+
+# @method_decorator(csrf_exempt, name='dispatch')
+# class UserDeleteView(DeleteView):
+#     model = User
+#     success_url = '/'
+#
+#     def delete(self, request, *args, **kwargs):
+#         super().delete(request, *args, **kwargs)
+#         return JsonResponse({}, status=204)
 
 class UserCreateView(CreateAPIView):
     queryset = User.objects.all()
