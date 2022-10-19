@@ -66,13 +66,13 @@ class CategoryUpdateView(UpdateView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class CategoryDeleteView(DeleteView):
-
     model = Category
     success_url = '/'
 
     def delete(self, request, *args, **kwargs):
         super().delete(request, *args, **kwargs)
         return JsonResponse({}, status=204)
+
 
 class CategoryDetailView(DetailView):
     model = Category

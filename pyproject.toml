@@ -12,6 +12,7 @@ Pillow = "^9.2.0"
 djangorestframework-jsonapi = "^6.0.0"
 djangorestframework-jwt = "^1.11.0"
 djangorestframework = "^3.14.0"
+djangorestframework-simplejwt = "^5.2.1"
 
 
 [build-system]
