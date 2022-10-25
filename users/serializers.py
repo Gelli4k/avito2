@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from rest_framework.fields import empty
+
 
 from users.models import User, Location
 
@@ -23,7 +23,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
                                             slug_field='name')
 
     def is_valid(self, *, raise_exception=False):
-        self._locations = self.initial_data.pop('location',[])
+        self._locations = self.initial_data.pop('location', [])
         return super().is_valid(raise_exception=raise_exception)
 
     def create(self, validated_data):
@@ -35,7 +35,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        field = "__all__"
+        fields = "__all__"
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):
@@ -55,10 +55,10 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        field = "__all__"
+        fields = "__all__"
 
 
 class UserDeleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id"]
+        fields = ['id']

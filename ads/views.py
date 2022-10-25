@@ -1,5 +1,6 @@
 import json
 
+from django.contrib.auth.models import AnonymousUser
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
@@ -7,17 +8,20 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView
-from rest_framework.generics import ListAPIView
+from rest_framework.decorators import permission_classes, api_view
+from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView
+from rest_framework.permissions import IsAuthenticated
 
-from ads.models import Category, Ad
-from ads.serializers import AdListSerializer
+from ads.models import Category, Ad, Selection
+from ads.permissions import IsOwnerAdOrStaff, IsOwnerSelection
+from ads.serializers import AdListSerializer, AdDetailSerializer, SelectionCreateSerializer, SelectionListSerializer, \
+    AdUpdateSerializer, SelectionDetailSerializer
 from avito import settings
-from users.models import User
+from users.models import User, UserRoles
 
 
-# Create your views here.
-
-
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def root(request):
     return JsonResponse({'status': 'ok'})
 
@@ -27,9 +31,11 @@ class CategoryView(View):
     def get(self, request):
         categories = Category.objects.all()
         result = []
+        if isinstance(request.user, AnonymousUser) or request.user.role not in [UserRoles.MODERATOR, UserRoles.ADMIN]:
+            return JsonResponse("Нет доступа!", safe=False)
         for cat in categories:
             result.append({"id": cat.id, "name": cat.name})
-        return JsonResponse(result, safe=False, json_dumps_params={'ensure_ascii': False})
+        return JsonResponse(result, safe=False)
 
     def post(self, request):
         data = json.loads(request.body)
@@ -93,7 +99,7 @@ class AdListView(ListAPIView):
             self.queryset = self.queryset.filter(category_id__in=categories)
         text = request.GET.get('text')
         if text:
-            self.queryset = self.queryset.filter(name__contains=text)
+            self.queryset = self.queryset.filter(name__icontains=text)
         location = request.GET.get('location')
         if location:
             self.queryset = self.queryset.filter(author__location__name__icontains=location)
@@ -163,25 +169,37 @@ class AdCreateView(CreateView):
             json_dumps_params={'ensure_ascii': False})
 
 
-class AdUpdateView(UpdateView):
-    model = Ad
-    fields = ['name', 'author', 'price', 'description', 'is_published', 'category']
+# @method_decorator(csrf_exempt, name='dispatch')
+# class AdUpdateView(UpdateView):
+#     model = Ad
+#     fields = ['name']
+#
+#     def patch(self, request, *args, **kwargs):
+#         super().post(request, *args, **kwargs)
+#         data = json.loads(request.body)
+#         self.object.name = data['name']
+#         self.object.save()
+#         return JsonResponse(
+#             {"id": self.object.id,
+#              "name": self.object.name,
+#              "author": self.object.author.username,
+#              "category": self.object.category.name,
+#              "price": self.object.price,
+#              "description": self.object.description,
+#              "is_published": self.object.is_published,
+#              }, safe=False,
+#             json_dumps_params={'ensure_ascii': False})
 
-    def patch(self, request, *args, **kwargs):
-        super().post(request, *args, **kwargs)
-        data = json.loads(request.body)
-        self.object.name = data['name', 'author', 'price', 'description', 'is_published', 'category']
-        self.object.save()
-        return JsonResponse(
-            {"id": self.object.id,
-             "name": self.object.name,
-             "author": self.object.author.username,
-             "category": self.object.category.name,
-             "price": self.object.price,
-             "description": self.object.description,
-             "is_published": self.object.is_published,
-             }, safe=False,
-            json_dumps_params={'ensure_ascii': False})
+class AdUpdateView(UpdateAPIView):
+    queryset = Ad.objects.all()
+    permission_classes = [IsAuthenticated, IsOwnerAdOrStaff]
+    serializer_class = AdUpdateSerializer
+
+
+class AdDeleteView(DestroyAPIView):
+    queryset = Ad.objects.all()
+    permission_classes = [IsAuthenticated, IsOwnerAdOrStaff]
+    serializer_class = AdUpdateSerializer
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -206,19 +224,38 @@ class AdLoadImageView(UpdateView):
             json_dumps_params={'ensure_ascii': False})
 
 
-class AdDetailView(DetailView):
-    model = Ad
+class AdDetailView(RetrieveAPIView):
+    queryset = Ad.objects.all()
+    serializer_class = AdDetailSerializer
+    permission_classes = [IsAuthenticated]
 
-    def get(self, request, *args, **kwargs):
-        ad = self.get_object()
-        return JsonResponse({
-            "id": ad.id,
-            "name": ad.name,
-            "author": ad.author,
-            "price": ad.price,
-            "description": ad.description,
-            "is_published": ad.is_published}, safe=False,
-            json_dumps_params={'ensure_ascii': False})
+
+class SelectionCreateView(CreateAPIView):
+    queryset = Selection.objects.all()
+    serializer_class = SelectionCreateSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class SelectionUpdateView(UpdateAPIView):
+    queryset = Selection.objects.all()
+    serializer_class = SelectionCreateSerializer
+    permission_classes = [IsAuthenticated, IsOwnerSelection]
+
+
+class SelectionListView(ListAPIView):
+    queryset = Selection.objects.all()
+    serializer_class = SelectionListSerializer
+
+
+class SelectionDetailView(RetrieveAPIView):
+    queryset = Selection.objects.all()
+    serializer_class = SelectionDetailSerializer
+
+
+class SelectionDeleteView(DestroyAPIView):
+    queryset = Selection.objects.all()
+    serializer_class = SelectionCreateSerializer
+    permission_classes = [IsAuthenticated]
 
 
 @method_decorator(csrf_exempt, name='dispatch')
