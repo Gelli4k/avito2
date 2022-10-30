@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.core.validators import MinLengthValidator
 from users.models import User
 
 
@@ -9,7 +9,8 @@ class Category(models.Model):
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
-    name = models.CharField(max_length=50, unique=True)
+    name = models.CharField(verbose_name="Название категории", max_length=50, unique=True)
+    slug = models.CharField(verbose_name="Слаг", validators=[MinLengthValidator(5)], max_length=10, unique=True)
 
     def __str__(self):
         return self.name
@@ -20,7 +21,7 @@ class Ad(models.Model):
         verbose_name = 'Объявление'
         verbose_name_plural = 'Объявления'
 
-    name = models.CharField(max_length=50, unique=True)
+    name = models.CharField(max_length=50, unique=True, validators=[MinLengthValidator(10)])
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ads')
     price = models.PositiveIntegerField()
     description = models.TextField(null=True)
@@ -30,6 +31,7 @@ class Ad(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Selection(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='selections')
@@ -42,4 +44,3 @@ class Selection(models.Model):
 
     def __str__(self):
         return self.name
-

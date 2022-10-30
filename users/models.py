@@ -1,8 +1,20 @@
+from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.core.exceptions import ValidationError
+
+from datetime import date
+
+USER_MIN_AGE = 9
 
 
-# Create your models here.
+def birthdate_validator(value):
+    diff_years = relativedelta(date.today(), value).years()
+    if diff_years < USER_MIN_AGE:
+        raise ValidationError('Пользователь младше допустимого возраста')
+    return value
+
+
 class Location(models.Model):
     name = models.CharField(max_length=100)
     lat = models.DecimalField(max_length=8, decimal_places=6, max_digits=10, null=True)
@@ -52,6 +64,12 @@ class User(AbstractUser):
     role = models.CharField(choices=UserRoles.choices, default='member', max_length=12)
     locations = models.ManyToManyField(Location)
     age = models.PositiveSmallIntegerField(null=True)
+    first_name = models.CharField(max_length=100, null=True)
+    last_name = models.CharField(max_length=150, null=True)
+    username = models.CharField(max_length=20, unique=True)
+    password = models.CharField(max_length=200)
+    birthdate = models.DateField(validators=[birthdate_validator])
+    email = models.EmailField(unique=True)
 
     class Meta:
         verbose_name = 'Пользователь'
