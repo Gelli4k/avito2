@@ -22,6 +22,7 @@ class SelectionFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = 'ads.Selection'
 
+
 class AdFactory(factory.django.DjangoModelFactory):
     name = 'Ad'
     author = factory.SubFactory(UserFactory)

@@ -24,6 +24,3 @@ def test_create_selection(api_client, user, ad):
     assert res.status_code == status.HTTP_201_CREATED
     assert res_data['name'] == data['name']
     assert res_data['owner'] == data['owner']
-
-
-
